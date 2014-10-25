@@ -38,6 +38,25 @@ func main() {
 	// check connection
 	log.Print(cl.Ping())
 
+	//Create database
+	if err := cl.CreateDatabase(database); err != nil {
+		log.Fatalf("unabele to create database %s: %s", database, err)
+	}
+
+	shardSpace := client.ShardSpace{
+		// required, must be unique within the database
+		Name: database,
+		// required, a database has many shard spaces and a shard space belongs to a database
+		Regex:    "/.*/",
+		Database: database,
+		// this is optional, if they don't set it, it will default to the storage.dir in the config
+		ReplicationFactor: 3,
+	}
+
+	if err := cl.CreateShardSpace(database, &shardSpace); err != nil {
+		log.Fatalf("unable to create shard space for database %s: %s", database, err)
+	}
+
 	// To create continues series. It should be done only once.
 	// This example means put into MYAGGNAME value evaluated as 95% of `a` grouped by 1 minute
 	// It's possible to get falues as SELECT * FROM MYAGGNAME

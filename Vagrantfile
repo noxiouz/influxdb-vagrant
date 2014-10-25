@@ -26,8 +26,12 @@ Vagrant.configure("2") do |config|
 			influx.vm.hostname = "influx#{i}.local"
 
 			influx.vm.network "private_network", ip: "192.168.50.#{i}"
+			# port for influxdb web interface
 			influx.vm.network :forwarded_port, guest: 8083, host: 8083 + 100*i
+			# port for influxdb HTTP api. Used by client to send points
 			influx.vm.network :forwarded_port, guest: 8086, host: 8086 + 100*i
+			# for grafana. nginx port, for example
+			influx.vm.network :forwarded_port, guest: 8080, host: 8080 + 100*i
 
 
 			influx.vm.provision "shell", path: "script.sh"
@@ -37,8 +41,14 @@ Vagrant.configure("2") do |config|
 			end
 
 			influx.vm.provision "shell" do |s|
+				s.inline = "cp /vagrant/config.js /home/vagrant/grafana-1.8.1/"
+			end
+
+			influx.vm.provision "shell" do |s|
 				s.inline = "service influxdb restart"
 			end
+
+			influx.vm.provision "shell", path: "run_grafana.sh"
 		end
 	end
 end
