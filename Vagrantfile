@@ -19,16 +19,26 @@ BOX_NAME = 'precise64-docker'
 
 Vagrant.configure("2") do |config|
 
-	(1..2).each do |i|
+	(2..3).each do |i|
 		config.vm.define "influx#{i}" do |influx|
 			influx.vm.box = BOX_NAME
 			influx.vm.box_url = BOX_URL
-			influx.vm.network "private_network", ip: "192.168.50.#{i}"
 			influx.vm.hostname = "influx#{i}.local"
 
-			# provision
-			influx.vm.provision "shell",
-				path: "script.sh"
+			influx.vm.network "private_network", ip: "192.168.50.#{i}"
+			influx.vm.network :forwarded_port, guest: 8083, host: 8083 + 100*i
+			influx.vm.network :forwarded_port, guest: 8086, host: 8086 + 100*i
+
+
+			influx.vm.provision "shell", path: "script.sh"
+
+			influx.vm.provision "shell" do |s|
+				s.inline = "cp /vagrant/influx#{i}.config.toml /opt/influxdb/shared/config.toml"
+			end
+
+			influx.vm.provision "shell" do |s|
+				s.inline = "service influxdb restart"
+			end
 		end
 	end
 end
