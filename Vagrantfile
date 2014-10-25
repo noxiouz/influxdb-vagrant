@@ -13,24 +13,22 @@
 # GNU Lesser General Public License for more details.
 #
 
+
+BOX_URL = 'https://github.com/cocaine/cocaine-vagrant/releases/download/v0.11/precise64-docker.box'
+BOX_NAME = 'precise64-docker'
+
 Vagrant.configure("2") do |config|
-	config.vm.define "influx1" do |influx1|
-		influx1.vm.box = 'precise64-docker'
-		influx1.vm.box_url = 'https://github.com/cocaine/cocaine-vagrant/releases/download/v0.11/precise64-docker.box'
-		influx1.vm.network "private_network", ip: "192.168.50.4"
 
-		# provision
-		influx1.vm.provision "shell",
-			path: "script.sh"
-	end
+	(1..2).each do |i|
+		config.vm.define "influx#{i}" do |influx|
+			influx.vm.box = BOX_NAME
+			influx.vm.box_url = BOX_URL
+			influx.vm.network "private_network", ip: "192.168.50.#{i}"
+			influx.vm.hostname = "influx#{i}.local"
 
-	config.vm.define "influx2" do |influx2|
-		influx2.vm.box = 'precise64-docker'
-		influx2.vm.box_url = 'https://github.com/cocaine/cocaine-vagrant/releases/download/v0.11/precise64-docker.box'
-		influx2.vm.network "private_network", ip: "192.168.50.5"
-
-		# provision
-		influx2.vm.provision "shell",
-			path: "script.sh"
+			# provision
+			influx.vm.provision "shell",
+				path: "script.sh"
+		end
 	end
 end
